@@ -1,0 +1,34 @@
+{
+  "name": "my-typescript-project",
+  "version": "1.0.0",
+  "description": "A TypeScript project template.",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "npm run build && npm run start",
+    "check-activity": "node dist/scripts/checkActivity.js",
+    "migrate": "node dist/services/migrations/migrate.js",
+    "migrate:rollback": "node dist/services/migrations/migrate.js rollback"
+  },
+  "dependencies": {
+    "@types/luxon": "^3.4.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.7",
+    "luxon": "^3.5.0",
+    "mysql2": "^3.12.0",
+    "puppeteer": "^24.2.0"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/mysql": "^2.15.26",
+    "typescript": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/my-typescript-project.git"
+  },
+  "keywords": [],
+  "author": "Your Name",
+  "license": "MIT"
+}
