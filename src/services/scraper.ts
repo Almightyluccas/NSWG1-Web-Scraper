@@ -1,4 +1,4 @@
-import puppeteer, { Browser, Page } from 'puppeteer-core';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { PlayerInfo, PlayerData } from '../types';
 import { DatabaseService } from './DatabaseService';
 
@@ -79,27 +79,19 @@ export class GamePanelScraper {
     async initialize(username: string, password: string): Promise<void> {
         if (!this.browser) {
             const options = {
-                headless: this.headlessState,
-                defaultViewport: null,
+                headless: true, 
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--single-process'
-                ],
-                executablePath: process.env.NODE_ENV === 'production' 
-                    ? '/app/.apt/usr/bin/google-chrome'  // Heroku Chrome path
-                    : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome'
+                ]
             };
 
-            console.log('Launching browser with options:', {
-                headless: options.headless,
-                executablePath: options.executablePath,
-                env: process.env.NODE_ENV
-            });
-
+            console.log('Starting browser initialization...');
             try {
                 this.browser = await puppeteer.launch(options);
+                console.log('Browser launched successfully');
             } catch (error) {
                 console.error('Failed to launch browser:', error);
                 throw error;

@@ -5,3 +5,5 @@ dist/
 *.log
 .session/
 *.db
+.cache/
+.cache/puppeteer/

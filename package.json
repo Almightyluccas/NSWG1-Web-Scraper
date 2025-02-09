@@ -14,7 +14,7 @@
     "check-activity": "node dist/scripts/checkActivity.js",
     "migrate": "node dist/services/migrations/migrate.js",
     "migrate:rollback": "node dist/services/migrations/migrate.js rollback",
-    "postinstall": "npm run build && npx puppeteer browsers install chrome"
+    "heroku-postbuild": "npm run build && mkdir ./.cache && mv /app/.cache/puppeteer ./.cache"
   },
   "dependencies": {
     "@types/luxon": "^3.4.2",
@@ -22,7 +22,7 @@
     "dotenv": "^16.4.7",
     "luxon": "^3.5.0",
     "mysql2": "^3.12.0",
-    "puppeteer-core": "^24.2.0",
+    "puppeteer": "^24.2.0",
     "typescript": "^4.0.0",
     "@types/crypto-js": "^4.2.2",
     "@types/mysql": "^2.15.26"
