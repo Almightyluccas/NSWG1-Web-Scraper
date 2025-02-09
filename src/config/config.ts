@@ -23,25 +23,11 @@ export interface Config {
 }
 
 export function loadConfig(): Config {
-    const envPath = path.resolve(process.cwd(), '.env');
-    console.log('Current working directory:', process.cwd());
-    console.log('Looking for .env file at:', envPath);
-
-    const result = dotenv.config({ path: envPath });
-    
-    if (result.error) {
-        console.error('Error loading .env file:', result.error);
-        throw result.error;
+    // Only try to load .env file in development
+    if (process.env.NODE_ENV !== 'production') {
+        const envPath = path.resolve(process.cwd(), '.env');
+        dotenv.config({ path: envPath });
     }
-
-    console.log('Loaded environment variables:', {
-        DB_HOST: process.env.DB_HOST ? 'set' : 'not set',
-        DB_PORT: process.env.DB_PORT ? 'set' : 'not set',
-        DB_USER: process.env.DB_USER ? 'set' : 'not set',
-        DB_NAME: process.env.DB_NAME ? 'set' : 'not set',
-        ENCRYPTION_KEY: process.env.ENCRYPTION_KEY ? 'set' : 'not set',
-        ENCRYPTION_IV: process.env.ENCRYPTION_IV ? 'set' : 'not set',
-    });
 
     const requiredEnvVars = [
         'DB_HOST',
@@ -72,7 +58,7 @@ export function loadConfig(): Config {
             key: process.env.ENCRYPTION_KEY!,
             iv: process.env.ENCRYPTION_IV!
         },
-        refreshInterval: 45000,
+        refreshInterval: 30000,
         username: process.env.HH_USERNAME!,
         password: process.env.HH_PASSWORD!
     };

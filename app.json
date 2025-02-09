@@ -10,10 +10,43 @@
       "url": "heroku/nodejs"
     }
   ],
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "basic"
+    },
+    "web": {
+      "quantity": 0
+    }
+  },
   "env": {
-    "NODE_ENV": {
-      "description": "Environment for Node.js app",
-      "value": "production"
+    "NODE_ENV": "production",
+    "HH_USERNAME": {
+      "required": true
+    },
+    "HH_PASSWORD": {
+      "required": true
+    },
+    "ENCRYPTION_KEY": {
+      "required": true
+    },
+    "ENCRYPTION_IV": {
+      "required": true
+    },
+    "DB_HOST": {
+      "required": true
+    },
+    "DB_PORT": {
+      "required": true
+    },
+    "DB_USER": {
+      "required": true
+    },
+    "DB_PASSWORD": {
+      "required": true
+    },
+    "DB_NAME": {
+      "required": true
     }
   }
 }
