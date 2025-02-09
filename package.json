@@ -14,7 +14,7 @@
     "check-activity": "node dist/scripts/checkActivity.js",
     "migrate": "node dist/services/migrations/migrate.js",
     "migrate:rollback": "node dist/services/migrations/migrate.js rollback",
-    "heroku-postbuild": "npm run build && mkdir ./.cache && mv /app/.cache/puppeteer ./.cache"
+    "heroku-postbuild": "npm run build && bash postbuild.bash"
   },
   "dependencies": {
     "@types/luxon": "^3.4.2",

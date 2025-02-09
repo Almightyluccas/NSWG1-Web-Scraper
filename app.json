@@ -7,7 +7,7 @@
       "url": "heroku/nodejs"
     },
     {
-      "url": "https://github.com/jontewks/puppeteer"
+      "url": "jontewks/puppeteer"
     }
   ],
   "formation": {
