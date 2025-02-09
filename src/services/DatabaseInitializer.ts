@@ -31,7 +31,7 @@ export class DatabaseInitializer {
             }
 
             await conn.query('SET FOREIGN_KEY_CHECKS = 1');
-            await conn.query('SET time_zone = "America/New_York"'); // Set connection timezone to EST
+            await conn.query('SET time_zone = "America/New_York"'); 
 
             await conn.query(`
                 CREATE TABLE IF NOT EXISTS Players (

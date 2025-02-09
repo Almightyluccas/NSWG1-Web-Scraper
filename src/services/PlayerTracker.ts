@@ -46,7 +46,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
         const currentPlayers = new Set(players);
         const dayStart = TimeService.getDayStartEST();
 
-        // Handle players who left
         for (const [player, sessionStart] of this.activeSessions.entries()) {
             if (!currentPlayers.has(player)) {
                 const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
@@ -60,7 +59,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
                     minutes: minutes
                 });
 
-                // Update raid activity if they were in a raid
                 if (RaidSchedule.isRaidTime(now)) {
                     await this.updateRaidActivity(player, now);
                 }
@@ -69,16 +67,13 @@ export class ConsolePlayerTracker implements PlayerTracker {
             }
         }
 
-        // Track new players joining
         for (const player of players) {
             if (!this.activeSessions.has(player)) {
-                // Add new player if not exists
                 await this.dbService.putPlayer({
                     name: player,
                     is_active_raider: false
                 });
                 
-                // Start new session
                 this.activeSessions.set(player, now.getTime());
                 console.log(`New session started for ${player} at ${TimeService.formatESTTime(now)}`);
             }
@@ -95,7 +90,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
         const now = TimeService.getCurrentESTTime();
         const dayStart = TimeService.getDayStartEST();
 
-        // End all active sessions
         const promises = Array.from(this.activeSessions.entries()).map(async ([player, sessionStart]) => {
             const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
             await this.dbService.putDailyActivity({
