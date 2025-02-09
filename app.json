@@ -1,0 +1,19 @@
+{
+  "name": "NSWG1-Web-Scraper",
+  "description": "Web scraper for game panel monitoring",
+  "repository": "https://github.com/yourusername/NSWG1-Web-Scraper",
+  "buildpacks": [
+    {
+      "url": "https://github.com/jontewks/puppeteer-heroku-buildpack"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment for Node.js app",
+      "value": "production"
+    }
+  }
+}

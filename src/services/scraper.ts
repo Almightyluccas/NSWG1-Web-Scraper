@@ -81,7 +81,13 @@ export class GamePanelScraper {
             this.browser = await puppeteer.launch({
                 headless: this.headlessState,
                 defaultViewport: null,
-                args: ['--start-maximized']
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--single-process',
+                    '--start-maximized'
+                ]
             });
             this.page = await this.browser.newPage();
 

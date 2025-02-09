@@ -1,15 +1,20 @@
 {
-  "name": "my-typescript-project",
+  "name": "nswg1-web-scraper",
   "version": "1.0.0",
-  "description": "A TypeScript project template.",
-  "main": "src/index.ts",
+  "description": "Web scraper for game panel monitoring",
+  "main": "dist/index.js",
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "npm run build && npm run start",
     "check-activity": "node dist/scripts/checkActivity.js",
     "migrate": "node dist/services/migrations/migrate.js",
-    "migrate:rollback": "node dist/services/migrations/migrate.js rollback"
+    "migrate:rollback": "node dist/services/migrations/migrate.js rollback",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@types/luxon": "^3.4.2",
@@ -17,18 +22,17 @@
     "dotenv": "^16.4.7",
     "luxon": "^3.5.0",
     "mysql2": "^3.12.0",
-    "puppeteer": "^24.2.0"
-  },
-  "devDependencies": {
+    "puppeteer": "^24.2.0",
+    "typescript": "^4.0.0",
     "@types/crypto-js": "^4.2.2",
-    "@types/mysql": "^2.15.26",
-    "typescript": "^4.0.0"
+    "@types/mysql": "^2.15.26"
   },
+  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/my-typescript-project.git"
   },
   "keywords": [],
-  "author": "Your Name",
+  "author": "Luccas Amorim",
   "license": "MIT"
 }
