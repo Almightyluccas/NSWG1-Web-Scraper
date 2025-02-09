@@ -1,7 +1,7 @@
 {
   "name": "NSWG1-Web-Scraper",
   "description": "Web scraper for game panel monitoring",
-  "repository": "https://github.com/yourusername/NSWG1-Web-Scraper",
+  "repository": "https://github.com/AlmightyLuccas/NSWG1-Web-Scraper",
   "buildpacks": [
     {
       "url": "heroku/nodejs"
