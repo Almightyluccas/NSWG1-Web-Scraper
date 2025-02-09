@@ -86,8 +86,7 @@ export class GamePanelScraper {
                     args: [
                         '--no-sandbox',
                         '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--single-process'
+                        '--disable-dev-shm-usage'
                     ]
                 });
                 console.log('Browser launched successfully');
@@ -98,13 +97,17 @@ export class GamePanelScraper {
                 const hasSession = await this.loadCookies();
                 console.log('Cookie load status:', hasSession);
 
-                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                    waitUntil: 'networkidle0'
+                });
                 console.log('Navigated to game panel');
                 
                 if (await this.isLoginPage()) {
                     console.log('Login required, attempting login...');
                     await this.login(username, password);
-                    await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                    await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                        waitUntil: 'networkidle0'
+                    });
                     console.log('Login completed');
                 }
             } catch (error) {
@@ -130,13 +133,17 @@ export class GamePanelScraper {
 
             if (await this.isLoginPage()) {
                 await this.login(username, password);
-                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                    waitUntil: 'networkidle0'
+                });
             }
 
             const currentUrl = this.page.url();
             if (currentUrl.includes('/Login') || !currentUrl.includes('/Service/Status/154520')) {
                 await this.login(username, password);
-                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                    waitUntil: 'networkidle0'
+                });
             }
 
             const playersTabExists = await this.page.evaluate(() => {
@@ -145,7 +152,9 @@ export class GamePanelScraper {
 
             if (!playersTabExists) {
                 await this.login(username, password);
-                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                    waitUntil: 'networkidle0'
+                });
                 
                 const tabExists = await this.page.evaluate(() => {
                     return !!document.querySelector('li[aria-controls="tabStrip-1"]');
@@ -208,7 +217,9 @@ export class GamePanelScraper {
         } catch (error) {
             try {
                 await this.login(username, password);
-                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520', {
+                    waitUntil: 'networkidle0'
+                });
                 return await this.scrapePlayerData(username, password);
             } catch (retryError) {
                 throw error;
