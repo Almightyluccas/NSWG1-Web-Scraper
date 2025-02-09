@@ -78,36 +78,37 @@ export class GamePanelScraper {
 
     async initialize(username: string, password: string): Promise<void> {
         if (!this.browser) {
-            const options = {
-                headless: true, 
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--single-process'
-                ]
-            };
-
-            console.log('Starting browser initialization...');
             try {
-                this.browser = await puppeteer.launch(options);
+                console.log('Launching browser...');
+                this.browser = await puppeteer.launch({
+                    headless: this.headlessState,
+                    defaultViewport: null,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--single-process'
+                    ]
+                });
                 console.log('Browser launched successfully');
-            } catch (error) {
-                console.error('Failed to launch browser:', error);
-                throw error;
-            }
 
-            try {
                 this.page = await this.browser.newPage();
+                console.log('New page created');
+
                 const hasSession = await this.loadCookies();
+                console.log('Cookie load status:', hasSession);
+
                 await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                console.log('Navigated to game panel');
                 
                 if (await this.isLoginPage()) {
+                    console.log('Login required, attempting login...');
                     await this.login(username, password);
                     await this.page.goto('https://gamepanel.hosthavoc.com/Service/Status/154520');
+                    console.log('Login completed');
                 }
             } catch (error) {
-                console.error('Failed to initialize page:', error);
+                console.error('Browser initialization error:', error);
                 if (this.browser) {
                     await this.browser.close();
                     this.browser = null;
