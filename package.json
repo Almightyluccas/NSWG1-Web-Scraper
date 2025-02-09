@@ -14,7 +14,7 @@
     "check-activity": "node dist/scripts/checkActivity.js",
     "migrate": "node dist/services/migrations/migrate.js",
     "migrate:rollback": "node dist/services/migrations/migrate.js rollback",
-    "postinstall": "npm run build && npx puppeteer browsers install chrome"
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "@types/luxon": "^3.4.2",
