@@ -87,8 +87,16 @@ export class GamePanelScraper {
                     '--disable-dev-shm-usage',
                     '--single-process'
                 ],
-                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome'
+                executablePath: process.env.NODE_ENV === 'production' 
+                    ? '/app/.apt/usr/bin/google-chrome'  // Heroku Chrome path
+                    : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome'
             };
+
+            console.log('Launching browser with options:', {
+                headless: options.headless,
+                executablePath: options.executablePath,
+                env: process.env.NODE_ENV
+            });
 
             try {
                 this.browser = await puppeteer.launch(options);

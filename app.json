@@ -21,7 +21,7 @@
   },
   "env": {
     "NODE_ENV": "production",
-    "PUPPETEER_EXECUTABLE_PATH": "/usr/bin/google-chrome",
+    "PUPPETEER_EXECUTABLE_PATH": "/app/.apt/usr/bin/google-chrome",
     "HH_USERNAME": {
       "required": true
     },
