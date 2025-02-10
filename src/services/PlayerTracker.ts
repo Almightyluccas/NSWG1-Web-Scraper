@@ -6,6 +6,7 @@ import { TimeService } from './TimeService';
 export class ConsolePlayerTracker implements PlayerTracker {
     private activeSessions = new Map<string, number>();
     private raidSessions = new Map<string, number>();
+    private processedSessions = new Set<string>();
 
     constructor(private dbService: DatabaseService) {
         this.setupMidnightReset();
@@ -41,28 +42,38 @@ export class ConsolePlayerTracker implements PlayerTracker {
         });
     }
 
+    private async recordPlayerActivity(player: string, sessionStart: number, now: Date): Promise<void> {
+        const sessionKey = `${player}-${sessionStart}`;
+        if (this.processedSessions.has(sessionKey)) {
+            return;
+        }
+
+        const dayStart = TimeService.getDayStartEST();
+        const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
+        
+        await this.dbService.putDailyActivity({
+            date: dayStart,
+            player,
+            session_start: sessionStart,
+            session_end: now.getTime(),
+            minutes: minutes
+        });
+
+        if (RaidSchedule.isRaidTime(now)) {
+            await this.updateRaidActivity(player, now);
+        }
+
+        this.processedSessions.add(sessionKey);
+    }
+
     async processNewPlayers(players: string[]): Promise<void> {
         const now = TimeService.getCurrentESTTime();
         const currentPlayers = new Set(players);
-        const dayStart = TimeService.getDayStartEST();
 
         for (const [player, sessionStart] of this.activeSessions.entries()) {
             if (!currentPlayers.has(player)) {
-                const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
-                console.log(`Player ${player} left after ${minutes} minutes`);
-                
-                await this.dbService.putDailyActivity({
-                    date: dayStart,
-                    player,
-                    session_start: sessionStart,
-                    session_end: now.getTime(),
-                    minutes: minutes
-                });
-
-                if (RaidSchedule.isRaidTime(now)) {
-                    await this.updateRaidActivity(player, now);
-                }
-
+                console.log(`Player ${player} left after ${Math.floor((now.getTime() - sessionStart) / 60000)} minutes`);
+                await this.recordPlayerActivity(player, sessionStart, now);
                 this.activeSessions.delete(player);
             }
         }
@@ -88,25 +99,14 @@ export class ConsolePlayerTracker implements PlayerTracker {
 
     async reset(): Promise<void> {
         const now = TimeService.getCurrentESTTime();
-        const dayStart = TimeService.getDayStartEST();
 
         const promises = Array.from(this.activeSessions.entries()).map(async ([player, sessionStart]) => {
-            const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
-            await this.dbService.putDailyActivity({
-                date: dayStart,
-                player,
-                session_start: sessionStart,
-                session_end: now.getTime(),
-                minutes: minutes
-            });
-
-            if (RaidSchedule.isRaidTime(now)) {
-                await this.updateRaidActivity(player, now);
-            }
+            await this.recordPlayerActivity(player, sessionStart, now);
         });
 
         await Promise.all(promises);
         this.activeSessions.clear();
         this.raidSessions.clear();
+        this.processedSessions.clear();
     }
 }
