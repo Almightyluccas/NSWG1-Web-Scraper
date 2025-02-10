@@ -23,7 +23,6 @@ export interface Config {
 }
 
 export function loadConfig(): Config {
-    // Only try to load .env file in development
     if (process.env.NODE_ENV !== 'production') {
         const envPath = path.resolve(process.cwd(), '.env');
         dotenv.config({ path: envPath });

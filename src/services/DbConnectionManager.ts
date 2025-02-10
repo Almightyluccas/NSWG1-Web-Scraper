@@ -11,7 +11,7 @@ export class DbConnectionManager {
             user: config.user,
             password: config.password,
             database: config.database,
-            connectionLimit: 1, // Reduced since we only write on player leave/join
+            connectionLimit: 1,
             waitForConnections: true,
             queueLimit: 0
         });

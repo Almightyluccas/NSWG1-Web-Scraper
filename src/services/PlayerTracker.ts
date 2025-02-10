@@ -78,7 +78,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
         const currentPlayers = new Set(players);
         const dayStart = TimeService.getDayStartEST();
 
-        // Handle players who left
         for (const [player, sessionStart] of this.activeSessions.entries()) {
             if (!currentPlayers.has(player)) {
                 const sessionKey = this.getSessionKey(player, dayStart, sessionStart);
@@ -88,7 +87,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
             }
         }
 
-        // Handle new players
         for (const player of players) {
             if (!this.activeSessions.has(player)) {
                 await this.dbService.putPlayer({
@@ -101,7 +99,6 @@ export class ConsolePlayerTracker implements PlayerTracker {
             }
         }
 
-        // Log current state
         console.log('\nCurrent players:', TimeService.formatESTTime(now));
         if (RaidSchedule.isRaidTime(now)) {
             console.log('🎮 RAID IN PROGRESS 🎮');
@@ -112,14 +109,12 @@ export class ConsolePlayerTracker implements PlayerTracker {
     async reset(): Promise<void> {
         const now = TimeService.getCurrentESTTime();
         
-        // Record any remaining active sessions
         const promises = Array.from(this.activeSessions.entries()).map(async ([player, sessionStart]) => {
             await this.recordPlayerActivity(player, sessionStart, now);
         });
 
         await Promise.all(promises);
 
-        // Clear all trackers for the new day
         this.activeSessions.clear();
         this.raidSessions.clear();
         this.processedSessions.clear();

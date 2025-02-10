@@ -24,7 +24,7 @@ async function startMonitoring() {
         
         const cleanup = async () => {
             console.log('Cleaning up...');
-            await playerTracker.processNewPlayers([]); // Ensure we record final sessions
+            await playerTracker.processNewPlayers([]);
             await scraper.cleanup();
             await dbService.close();
             process.exit();
@@ -42,7 +42,6 @@ async function startMonitoring() {
                 const result = await scraper.scrapePlayerData(config.username, config.password);
                 const playerNames = result.isServerEmpty ? [] : result.players.map((p: PlayerInfo) => p.name);
                 
-                // Only call processNewPlayers if the player list has actually changed
                 const currentPlayers = new Set(playerNames);
                 const hasChanges = playerNames.length !== previousPlayers.size || 
                     [...currentPlayers].some(player => !previousPlayers.has(player)) ||
