@@ -42,20 +42,13 @@ export class ConsolePlayerTracker implements PlayerTracker {
         });
     }
 
-    private getSessionKey(player: string, dayStart: number, sessionStart: number): string {
-        return `${player}-${dayStart}-${sessionStart}`;
-    }
-
     private async recordPlayerActivity(player: string, sessionStart: number, now: Date): Promise<void> {
-        const dayStart = TimeService.getDayStartEST();
-        const sessionKey = this.getSessionKey(player, dayStart, sessionStart);
-        
+        const sessionKey = `${player}-${sessionStart}`;
         if (this.processedSessions.has(sessionKey)) {
-            console.log(`[TRACKER] Skipping already processed session: ${sessionKey}`);
             return;
         }
 
-        console.log(`[TRACKER] Recording new session: ${sessionKey}`);
+        const dayStart = TimeService.getDayStartEST();
         const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
         
         await this.dbService.putDailyActivity({
@@ -76,12 +69,10 @@ export class ConsolePlayerTracker implements PlayerTracker {
     async processNewPlayers(players: string[]): Promise<void> {
         const now = TimeService.getCurrentESTTime();
         const currentPlayers = new Set(players);
-        const dayStart = TimeService.getDayStartEST();
 
         for (const [player, sessionStart] of this.activeSessions.entries()) {
             if (!currentPlayers.has(player)) {
-                const sessionKey = this.getSessionKey(player, dayStart, sessionStart);
-                console.log(`[TRACKER] Player ${player} left, session key: ${sessionKey}`);
+                console.log(`Player ${player} left after ${Math.floor((now.getTime() - sessionStart) / 60000)} minutes`);
                 await this.recordPlayerActivity(player, sessionStart, now);
                 this.activeSessions.delete(player);
             }
@@ -95,26 +86,30 @@ export class ConsolePlayerTracker implements PlayerTracker {
                 });
                 
                 this.activeSessions.set(player, now.getTime());
-                console.log(`[TRACKER] New session started for ${player} at ${TimeService.formatESTTime(now)}`);
+                console.log(`New session started for ${player} at ${TimeService.formatESTTime(now)}`);
             }
         }
 
-        console.log('\nCurrent players:', TimeService.formatESTTime(now));
-        if (RaidSchedule.isRaidTime(now)) {
-            console.log('🎮 RAID IN PROGRESS 🎮');
+        console.log(`\nStatus check at ${TimeService.formatESTTime(now)}`);
+        if (players.length === 0) {
+            console.log('Server is empty');
+        } else {
+            console.log(`Server has ${players.length} player${players.length > 1 ? 's' : ''} online:`);
+            if (RaidSchedule.isRaidTime(now)) {
+                console.log('🎮 RAID IN PROGRESS 🎮');
+            }
+            players.forEach(player => console.log(`- ${player}`));
         }
-        players.forEach(player => console.log(`- ${player}`));
     }
 
     async reset(): Promise<void> {
         const now = TimeService.getCurrentESTTime();
-        
+
         const promises = Array.from(this.activeSessions.entries()).map(async ([player, sessionStart]) => {
             await this.recordPlayerActivity(player, sessionStart, now);
         });
 
         await Promise.all(promises);
-
         this.activeSessions.clear();
         this.raidSessions.clear();
         this.processedSessions.clear();
