@@ -24,7 +24,7 @@ async function startMonitoring() {
         
         const cleanup = async () => {
             console.log('Cleaning up...');
-            await playerTracker.processNewPlayers([]);
+            await playerTracker.processNewPlayers([]); 
             await scraper.cleanup();
             await dbService.close();
             process.exit();
@@ -47,8 +47,10 @@ async function startMonitoring() {
                     [...currentPlayers].some(player => !previousPlayers.has(player)) ||
                     [...previousPlayers].some(player => !currentPlayers.has(player));
 
+                // Always call processNewPlayers, regardless of changes
+                await playerTracker.processNewPlayers(playerNames);
+                
                 if (hasChanges) {
-                    await playerTracker.processNewPlayers(playerNames);
                     previousPlayers = currentPlayers;
                 }
 
