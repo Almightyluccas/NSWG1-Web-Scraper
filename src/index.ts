@@ -24,6 +24,7 @@ async function startMonitoring() {
         
         const cleanup = async () => {
             console.log('Cleaning up...');
+            await playerTracker.processNewPlayers([]); // Ensure we record final sessions
             await scraper.cleanup();
             await dbService.close();
             process.exit();
@@ -39,19 +40,20 @@ async function startMonitoring() {
         while (true) {
             try {
                 const result = await scraper.scrapePlayerData(config.username, config.password);
+                const playerNames = result.isServerEmpty ? [] : result.players.map((p: PlayerInfo) => p.name);
                 
-                if (!result.isServerEmpty && result.players.length > 0) {
-                    const playerNames = result.players.map((p: PlayerInfo) => p.name);
-                    const currentPlayers = new Set(playerNames);
+                // Only call processNewPlayers if the player list has actually changed
+                const currentPlayers = new Set(playerNames);
+                const hasChanges = playerNames.length !== previousPlayers.size || 
+                    [...currentPlayers].some(player => !previousPlayers.has(player)) ||
+                    [...previousPlayers].some(player => !currentPlayers.has(player));
 
+                if (hasChanges) {
                     await playerTracker.processNewPlayers(playerNames);
-
                     previousPlayers = currentPlayers;
-                } else {
-                    if (previousPlayers.size > 0) {
-                        await playerTracker.processNewPlayers([]);
-                        previousPlayers.clear();
-                    }
+                }
+
+                if (result.isServerEmpty) {
                     console.log(`\n${result.message} - ${TimeService.formatESTTime(TimeService.getCurrentESTTime())}`);
                 }
 

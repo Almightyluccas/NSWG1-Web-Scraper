@@ -57,7 +57,25 @@ export class DatabaseService {
     public async putDailyActivity(activity: DailyActivity): Promise<void> {
         const conn = await this.dbManager.getConnection();
         try {
-            console.log(`Recording activity for ${activity.player}:`, {
+            await conn.beginTransaction();
+
+            // First check if this session already exists
+            const [rows] = await conn.query(
+                'SELECT COUNT(*) as count FROM DailyActivity WHERE date = ? AND player = ? AND session_start = ?',
+                [activity.date, activity.player, activity.session_start]
+            );
+
+            if ((rows as any[])[0].count > 0) {
+                console.log(`[DB] Skipping duplicate session for ${activity.player}:`, {
+                    date: TimeService.formatESTTime(activity.date),
+                    start: TimeService.formatESTTime(activity.session_start),
+                    end: TimeService.formatESTTime(activity.session_end)
+                });
+                await conn.rollback();
+                return;
+            }
+
+            console.log(`[DB] Recording new activity for ${activity.player}:`, {
                 date: TimeService.formatESTTime(activity.date),
                 start: TimeService.formatESTTime(activity.session_start),
                 end: TimeService.formatESTTime(activity.session_end),
@@ -68,6 +86,11 @@ export class DatabaseService {
                 'INSERT INTO DailyActivity (date, player, session_start, session_end, minutes) VALUES (?, ?, ?, ?, ?)',
                 [activity.date, activity.player, activity.session_start, activity.session_end, activity.minutes]
             );
+
+            await conn.commit();
+        } catch (error) {
+            await conn.rollback();
+            throw error;
         } finally {
             await conn.release();
         }
