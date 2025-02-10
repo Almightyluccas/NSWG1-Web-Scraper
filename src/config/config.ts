@@ -57,7 +57,7 @@ export function loadConfig(): Config {
             key: process.env.ENCRYPTION_KEY!,
             iv: process.env.ENCRYPTION_IV!
         },
-        refreshInterval: 30000,
+        refreshInterval: 60000,
         username: process.env.HH_USERNAME!,
         password: process.env.HH_PASSWORD!
     };

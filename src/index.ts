@@ -47,7 +47,6 @@ async function startMonitoring() {
                     [...currentPlayers].some(player => !previousPlayers.has(player)) ||
                     [...previousPlayers].some(player => !currentPlayers.has(player));
 
-                // Always call processNewPlayers, regardless of changes
                 await playerTracker.processNewPlayers(playerNames);
                 
                 if (hasChanges) {
