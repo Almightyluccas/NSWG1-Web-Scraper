@@ -38,7 +38,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
             player,
             minutes: raidMinutes,
             raid_type: raidType,
-            status: raidMinutes >= 30 ? 'PRESENT' : 'ABSENT'  // Changed from 90 to 30 minutes
+            status: raidMinutes > 15 ? 'PRESENT' : 'ABSENT'  // Changed to log any attendance
         });
     }
 
@@ -69,10 +69,23 @@ export class ConsolePlayerTracker implements PlayerTracker {
     async processNewPlayers(players: string[]): Promise<void> {
         const now = TimeService.getCurrentESTTime();
         const currentPlayers = new Set(players);
+        const isRaidTime = RaidSchedule.isRaidTime(now);
+        const raidType = RaidSchedule.getRaidType(now);
+
+        if (isRaidTime && raidType) {
+            console.log('\n========================================');
+            console.log(`🎮 RAID TIME: ${raidType} RAID IN PROGRESS 🎮`);
+            console.log(`Time: ${TimeService.formatESTTime(now)}`);
+            console.log('========================================\n');
+        }
 
         for (const [player, sessionStart] of this.activeSessions.entries()) {
             if (!currentPlayers.has(player)) {
-                console.log(`Player ${player} left after ${Math.floor((now.getTime() - sessionStart) / 60000)} minutes`);
+                const sessionMinutes = Math.floor((now.getTime() - sessionStart) / 60000);
+                console.log(`Player ${player} left after ${sessionMinutes} minutes`);
+                if (isRaidTime) {
+                    console.log(`📝 Recording raid attendance for ${player}`);
+                }
                 await this.recordPlayerActivity(player, sessionStart, now);
                 this.activeSessions.delete(player);
             }
@@ -87,6 +100,9 @@ export class ConsolePlayerTracker implements PlayerTracker {
                 
                 this.activeSessions.set(player, now.getTime());
                 console.log(`New session started for ${player} at ${TimeService.formatESTTime(now)}`);
+                if (isRaidTime) {
+                    console.log(`📝 Starting raid attendance tracking for ${player}`);
+                }
             }
         }
 
@@ -95,8 +111,8 @@ export class ConsolePlayerTracker implements PlayerTracker {
             console.log('Server is empty');
         } else {
             console.log(`Server has ${players.length} player${players.length > 1 ? 's' : ''} online:`);
-            if (RaidSchedule.isRaidTime(now)) {
-                console.log('🎮 RAID IN PROGRESS 🎮');
+            if (isRaidTime) {
+                console.log(`🎮 ${raidType} RAID IN PROGRESS 🎮`);
             }
             players.forEach(player => console.log(`- ${player}`));
         }

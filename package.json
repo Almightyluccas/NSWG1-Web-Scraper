@@ -4,16 +4,13 @@
   "description": "Web scraper for game panel monitoring",
   "main": "dist/index.js",
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+    "node": ">=18.x",
+    "npm": ">=9.x"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "npm run build && npm run start",
-    "check-activity": "node dist/scripts/checkActivity.js",
-    "migrate": "node dist/services/migrations/migrate.js",
-    "migrate:rollback": "node dist/services/migrations/migrate.js rollback",
+    "dev": "ts-node-dev src/index.ts",
     "heroku-postbuild": "npm run build"
   },
   "dependencies": {
@@ -27,7 +24,10 @@
     "@types/crypto-js": "^4.2.2",
     "@types/mysql": "^2.15.26"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/my-typescript-project.git"

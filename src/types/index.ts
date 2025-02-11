@@ -45,6 +45,8 @@ export interface RaidActivity {
     date: number;
     player: string;
     minutes: number;
-    raid_type: 'TUE' | 'WED' | 'SAT';
+    raid_type: RaidType;
     status: 'PRESENT' | 'ABSENT' | 'EXCUSED';
 }
+
+export type RaidType = 'WED' | 'SAT';

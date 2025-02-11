@@ -9,9 +9,8 @@ export interface RaidTime {
 
 export class RaidSchedule {
     private static RAID_TIMES: RaidTime[] = [
-        { dayOfWeek: 2, hour: 6, minute: 35, durationMinutes: 30 },  // Tuesday 6:35 AM EST
-        { dayOfWeek: 3, hour: 21, minute: 0, durationMinutes: 30 },  // Wednesday 9 PM EST
-        { dayOfWeek: 6, hour: 21, minute: 0, durationMinutes: 30 }   // Saturday 9 PM EST
+        { dayOfWeek: 3, hour: 21, minute: 0, durationMinutes: 180 },  // Wednesday 9 PM EST
+        { dayOfWeek: 6, hour: 21, minute: 0, durationMinutes: 180 }   // Saturday 9 PM EST
     ];
 
     static isRaidTime(date: Date = TimeService.getCurrentESTTime()): boolean {
@@ -31,9 +30,9 @@ export class RaidSchedule {
         });
     }
 
-    static getRaidType(date: Date = TimeService.getCurrentESTTime()): 'TUE' | 'WED' | 'SAT' | null {
+    static getRaidType(date: Date = TimeService.getCurrentESTTime()): 'WED' | 'SAT' | null {
         const estDate = TimeService.toESTTime(date);
         const day = estDate.getDay();
-        return day === 2 ? 'TUE' : day === 3 ? 'WED' : day === 6 ? 'SAT' : null;
+        return day === 3 ? 'WED' : day === 6 ? 'SAT' : null;
     }
 }
