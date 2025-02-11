@@ -38,7 +38,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
             player,
             minutes: raidMinutes,
             raid_type: raidType,
-            status: raidMinutes >= 90 ? 'PRESENT' : 'ABSENT'
+            status: raidMinutes >= 30 ? 'PRESENT' : 'ABSENT'  // Changed from 90 to 30 minutes
         });
     }
 

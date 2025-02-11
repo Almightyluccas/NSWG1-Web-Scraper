@@ -68,7 +68,7 @@ export class DatabaseInitializer {
                     date BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Date at midnight in milliseconds',
                     player VARCHAR(255) NOT NULL,
                     minutes INT NOT NULL COMMENT 'Duration in minutes',
-                    raid_type ENUM('WED', 'SAT') NOT NULL COMMENT 'Raid day in Eastern Time',
+                    raid_type ENUM('TUE', 'WED', 'SAT') NOT NULL COMMENT 'Raid day in Eastern Time',
                     status ENUM('PRESENT', 'ABSENT', 'EXCUSED') NOT NULL,
                     PRIMARY KEY (date, player),
                     FOREIGN KEY (player) REFERENCES Players(name) ON DELETE CASCADE,
