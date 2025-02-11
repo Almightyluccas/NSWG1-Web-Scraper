@@ -15,7 +15,7 @@ async function startMonitoring() {
         const dbInitializer = new DatabaseInitializer(config.database);
         await dbInitializer.initialize();
 
-        const dbManager = new DbConnectionManager(config.database);
+        const dbManager = DbConnectionManager.getInstance(config.database);
         const encryption = new EncryptionService(config.encryption);
         const dbService = new DatabaseService(dbManager, encryption);
         
