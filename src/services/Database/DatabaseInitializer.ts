@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-import { DatabaseConfig } from '../config/config';
+import { DatabaseConfig } from '../../config/config';
 
 export class DatabaseInitializer {
     constructor(private dbConfig: DatabaseConfig) {}

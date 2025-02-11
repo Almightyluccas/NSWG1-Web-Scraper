@@ -1,6 +1,6 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { PlayerInfo, PlayerData } from '../types';
-import { DatabaseService } from './DatabaseService';
+import { DatabaseService } from './Database/DatabaseService';
 
 export class GamePanelScraper {
     private browser: Browser | null = null;

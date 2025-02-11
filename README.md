@@ -1,89 +1,130 @@
-# my-typescript-project/README.md
+# Game Server Monitor
 
-# My TypeScript Project
+A TypeScript application that provides real-time monitoring and analytics for game server activity. Built with modern web technologies and professional software practices.
 
-This project is a TypeScript application that demonstrates the use of TypeScript for building robust and type-safe applications.
+## Project Overview
 
-## Setup Instructions
+This application showcases:
+- TypeScript and Object-Oriented Programming
+- Automated web scraping with Puppeteer
+- Real-time data monitoring and processing
+- Database integration
+- Secure credential management
+- Cloud deployment (Heroku)
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd my-typescript-project
-   ```
+### Key Features
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+- **Real-time Player Tracking**: Monitors player activity with precise session tracking
+- **Raid Schedule Management**: Sophisticated scheduling system for managing raid events
+- **Secure Data Handling**: 
+  - AES encryption for sensitive data
+  - Secure cookie management
+  - Environment-based configuration
+- **Persistent Data Storage**: MySQL database integration with proper connection pooling
+- **Time Zone Management**: Robust handling of time zones using Luxon
+- **Clean Code Structure**:
+  - Service-based architecture
+  - Dependency injection
+  - Interface-driven design
+  - Proper error handling and logging
 
-3. **Compile the TypeScript files:**
-   ```bash
-   npx tsc
-   ```
+## Technical Stack
 
-4. **Run the application:**
-   ```bash
-   node dist/index.js
-   ```
+- **Language**: TypeScript
+- **Runtime**: Node.js
+- **Database**: MySQL
+- **Key Libraries**:
+  - Puppeteer for web automation
+  - Luxon for time management
+  - crypto-js for encryption
+  - mysql2 for database connectivity
 
-## Usage
+## Architecture
 
-- The entry point of the application is located in `src/index.ts`.
-- Type definitions and interfaces can be found in `src/types/index.ts`.
-- Unit tests are located in the `tests` directory and can be run using your preferred testing framework.
+The application follows clean architecture principles with clear separation of concerns:
 
-## Deployment to Heroku
-
-### Prerequisites
-- A Heroku account
-- The repository connected to GitHub
-
-### Steps to Deploy
-
-1. Create a new Heroku app
-2. Connect your GitHub repository to Heroku
-3. Enable automatic deploys from your main/master branch
-4. Add the following buildpacks in this exact order:
-   - `https://github.com/jontewks/puppeteer-heroku-buildpack`
-   - `heroku/nodejs`
-
-### Environment Variables
-
-Set these environment variables in your Heroku app settings:
-
-- `HH_USERNAME`: Game panel username
-- `HH_PASSWORD`: Game panel password
-- `ENCRYPTION_KEY`: Key for encrypting cookies
-- `ENCRYPTION_IV`: IV for encryption
-- `DB_HOST`: Database host
-- `DB_PORT`: Database port
-- `DB_USER`: Database username
-- `DB_PASSWORD`: Database password
-- `DB_NAME`: Database name
-
-### Post-Deployment
-
-After deploying:
-1. Make sure to use a "worker" dyno instead of a "web" dyno
-2. Scale down the web dyno: `heroku ps:scale web=0`
-3. Scale up the worker dyno: `heroku ps:scale worker=1`
+```
+src/
+  ├── config/        # Configuration management
+  ├── services/      # Core business logic
+  │   ├── Database services
+  │   ├── Encryption
+  │   ├── Player tracking
+  │   └── Time management
+  └── types/         # TypeScript type definitions
+```
 
 ## Development
 
+### Prerequisites
+- Node.js 18.x
+- npm 9.x
+- MySQL database
+
 ### Local Setup
 
-1. Clone the repository
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd NSWG1-Web-Scraper
+   ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Create a `.env` file with the required environment variables
+
+3. Configure environment variables:
+   Create a `.env` file with the following variables:
+   ```
+   HH_USERNAME=your_username
+   HH_PASSWORD=your_password
+   ENCRYPTION_KEY=your_encryption_key
+   ENCRYPTION_IV=your_iv
+   DB_HOST=your_db_host
+   DB_PORT=3306
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_NAME=your_db_name
+   ```
+
 4. Run in development mode:
    ```bash
    npm run dev
    ```
 
-## Contributing
+## Deployment
 
-Feel free to submit issues or pull requests for improvements or bug fixes.
+The application is configured for deployment on Heroku with:
+- Automatic deployment from main branch
+- Worker dyno configuration
+- Custom buildpacks for Puppeteer support
+- Environment variable management
+
+### Features in Detail
+
+#### Player Activity Monitoring
+- Real-time session tracking
+- Automatic disconnection detection
+- Session duration calculation
+- Activity analytics
+
+#### Raid Management
+- Configurable raid schedules
+- Attendance tracking
+- Participation metrics
+- Automatic status updates
+
+#### Data Security
+- AES-CBC encryption
+- Secure session management
+- Environment-based configuration
+- Protected credential handling
+
+## Future Enhancements
+
+- GraphQL API integration
+- Real-time notifications
+- Enhanced analytics dashboard
+- Performance metrics
+- Player statistics visualization

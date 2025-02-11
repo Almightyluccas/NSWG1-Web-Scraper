@@ -1,5 +1,5 @@
 import { PlayerTracker } from '../types';
-import { DatabaseService } from './DatabaseService';
+import { DatabaseService } from './Database/DatabaseService';
 import { RaidSchedule } from './RaidSchedule';
 import { TimeService } from './TimeService';
 

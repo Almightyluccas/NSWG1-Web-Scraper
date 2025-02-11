@@ -1,8 +1,8 @@
 import { GamePanelScraper } from './services/scraper';
 import { ConsolePlayerTracker } from './services/PlayerTracker';
-import { DatabaseInitializer } from './services/DatabaseInitializer';
-import { DbConnectionManager } from './services/DbConnectionManager';
-import { DatabaseService } from './services/DatabaseService';
+import { DatabaseInitializer } from './services/Database/DatabaseInitializer';
+import { DbConnectionManager } from './services/Database/DbConnectionManager';
+import { DatabaseService } from './services/Database/DatabaseService';
 import { EncryptionService } from './services/EncryptionService';
 import { TimeService } from './services/TimeService';
 import { loadConfig } from './config/config';

@@ -1,7 +1,7 @@
 import { DbConnectionManager } from './DbConnectionManager';
-import { EncryptionService } from './EncryptionService';
-import { Session, Player, DailyActivity, RaidActivity } from '../types';
-import { TimeService } from './TimeService';
+import { EncryptionService } from '../EncryptionService';
+import { Session, Player, DailyActivity, RaidActivity } from '../../types';
+import { TimeService } from '../TimeService';
 
 export class DatabaseService {
     constructor(
