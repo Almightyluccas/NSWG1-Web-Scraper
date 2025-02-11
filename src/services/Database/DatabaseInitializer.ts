@@ -11,7 +11,7 @@ export class DatabaseInitializer {
         this.dbManager = DbConnectionManager.getInstance(dbConfig);
     }
 
-    private async tableExists(conn: mysql.PoolConnection, tableName: string): Promise<boolean> {
+    private async tableExists(conn: mysql.Connection, tableName: string): Promise<boolean> {
         const [rows] = await conn.query(
             'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = ? AND table_name = ?',
             [this.dbConfig.database, tableName]
@@ -20,10 +20,8 @@ export class DatabaseInitializer {
     }
 
     public async initialize(): Promise<void> {
-        let conn: mysql.PoolConnection | undefined;
-        
         try {
-            conn = await this.dbManager.getConnection();
+            const conn = await this.dbManager.getConnection();
 
             const tables = ['Players', 'Sessions', 'DailyActivity', 'RaidActivity'];
             for (const table of tables) {
@@ -88,10 +86,6 @@ export class DatabaseInitializer {
         } catch (error) {
             console.error('Error initializing database:', error);
             throw error;
-        } finally {
-            if (conn) {
-                conn.release();
-            }
         }
     }
 }
