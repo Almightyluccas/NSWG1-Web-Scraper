@@ -4,15 +4,17 @@ import { DbConnectionManager } from './DbConnectionManager';
 
 export class DatabaseInitializer {
     private dbManager: DbConnectionManager;
+    private dbConfig: DatabaseConfig;
 
     constructor(dbConfig: DatabaseConfig) {
+        this.dbConfig = dbConfig;
         this.dbManager = DbConnectionManager.getInstance(dbConfig);
     }
 
     private async tableExists(conn: mysql.PoolConnection, tableName: string): Promise<boolean> {
         const [rows] = await conn.query(
             'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = ? AND table_name = ?',
-            [this.dbManager.getPool().config.database, tableName]
+            [this.dbConfig.database, tableName]
         );
         return (rows as any)[0].count > 0;
     }
