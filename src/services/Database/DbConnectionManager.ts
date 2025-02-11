@@ -7,8 +7,29 @@ export class DbConnectionManager {
     private isConnecting: boolean = false;
     private connectionRetries: number = 0;
     private readonly MAX_RETRIES = 5;
+    private readonly IDLE_TIMEOUT_MS = 60000;
+    private lastUsedTime: number = 0;
+    private idleCheckInterval: NodeJS.Timeout | null = null;
 
-    private constructor(private config: DatabaseConfig) {}
+    private constructor(private config: DatabaseConfig) {
+        this.startIdleCheck();
+    }
+
+    private startIdleCheck() {
+        this.idleCheckInterval = setInterval(() => {
+            this.checkIdleConnection();
+        }, 30000);
+    }
+
+    private async checkIdleConnection() {
+        if (!this.connection) return;
+        
+        const idleTime = Date.now() - this.lastUsedTime;
+        if (idleTime >= this.IDLE_TIMEOUT_MS) {
+            console.log('Closing idle database connection');
+            await this.end();
+        }
+    }
 
     public static getInstance(config?: DatabaseConfig): DbConnectionManager {
         if (!DbConnectionManager.instance) {
@@ -45,6 +66,7 @@ export class DbConnectionManager {
             });
 
             this.connectionRetries = 0;
+            this.lastUsedTime = Date.now();
             return connection;
         } catch (error: any) {
             this.connectionRetries++;
@@ -63,6 +85,7 @@ export class DbConnectionManager {
         if (!this.connection) return false;
         try {
             await this.connection.query('SELECT 1');
+            this.lastUsedTime = Date.now();
             return true;
         } catch (error) {
             console.log('Connection validation failed, will create new connection');
@@ -80,6 +103,7 @@ export class DbConnectionManager {
         if (this.connection) {
             const isValid = await this.isConnectionValid();
             if (isValid) {
+                this.lastUsedTime = Date.now(); 
                 return this.connection;
             }
         }
@@ -90,6 +114,10 @@ export class DbConnectionManager {
 
     public async end(): Promise<void> {
         try {
+            if (this.idleCheckInterval) {
+                clearInterval(this.idleCheckInterval);
+                this.idleCheckInterval = null;
+            }
             if (this.connection) {
                 await this.connection.end();
                 this.connection = null;
