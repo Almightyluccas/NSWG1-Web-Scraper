@@ -7,7 +7,7 @@ export class DbConnectionManager {
     private isConnecting: boolean = false;
     private connectionRetries: number = 0;
     private readonly MAX_RETRIES = 5;
-    private readonly IDLE_TIMEOUT_MS = 60000;
+    private readonly IDLE_TIMEOUT_MS = 30000; 
     private lastUsedTime: number = 0;
     private idleCheckInterval: NodeJS.Timeout | null = null;
 
@@ -18,7 +18,7 @@ export class DbConnectionManager {
     private startIdleCheck() {
         this.idleCheckInterval = setInterval(() => {
             this.checkIdleConnection();
-        }, 30000);
+        }, 10000);
     }
 
     private async checkIdleConnection() {
@@ -39,6 +39,13 @@ export class DbConnectionManager {
             DbConnectionManager.instance = new DbConnectionManager(config);
         }
         return DbConnectionManager.instance;
+    }
+
+    public static destroyInstance(): void {
+        if (DbConnectionManager.instance) {
+            DbConnectionManager.instance.end().catch(console.error);
+            DbConnectionManager.instance = null as any;
+        }
     }
 
     private async createConnection(): Promise<mysql.Connection> {
@@ -119,8 +126,10 @@ export class DbConnectionManager {
                 this.idleCheckInterval = null;
             }
             if (this.connection) {
+                console.log('Closing database connection...');
                 await this.connection.end();
                 this.connection = null;
+                console.log('Database connection closed successfully');
             }
         } catch (error: any) {
             console.error('Error closing database connection:', error);

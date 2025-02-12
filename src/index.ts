@@ -8,6 +8,19 @@ import { TimeService } from './services/TimeService';
 import { loadConfig } from './config/config';
 import { PlayerInfo } from './types';
 
+async function cleanup() {
+    console.log('Application shutdown initiated...');
+    try {
+        const dbManager = DbConnectionManager.getInstance();
+        await dbManager.end();
+        DbConnectionManager.destroyInstance();
+        console.log('Cleanup completed successfully');
+    } catch (error) {
+        console.error('Error during cleanup:', error);
+    }
+    process.exit();
+}
+
 async function startMonitoring() {
     try {
         const config = loadConfig();
@@ -21,17 +34,18 @@ async function startMonitoring() {
         
         const playerTracker = new ConsolePlayerTracker(dbService);
         const scraper = new GamePanelScraper(true, dbService);
-        
-        const cleanup = async () => {
-            console.log('Cleaning up...');
-            await playerTracker.processNewPlayers([]); 
-            await scraper.cleanup();
-            await dbService.close();
-            process.exit();
-        };
 
+        // Register cleanup handlers
         process.on('SIGINT', cleanup);
         process.on('SIGTERM', cleanup);
+        process.on('uncaughtException', async (error) => {
+            console.error('Uncaught exception:', error);
+            await cleanup();
+        });
+        process.on('unhandledRejection', async (error) => {
+            console.error('Unhandled rejection:', error);
+            await cleanup();
+        });
 
         await scraper.initialize(config.username, config.password);
 
@@ -60,14 +74,18 @@ async function startMonitoring() {
                 await new Promise(resolve => setTimeout(resolve, config.refreshInterval));
             } catch (error) {
                 console.error('An error occurred during monitoring:', error);
-                await new Promise(resolve => setTimeout(resolve, config.refreshInterval));
+                // Add short delay before retry to avoid rapid connection attempts
+                await new Promise(resolve => setTimeout(resolve, 5000));
             }
         }
     } catch (error) {
         console.error('Fatal error:', error);
-        process.exit(1);
+        await cleanup();
     }
 }
 
 console.log('Starting player monitoring...');
-startMonitoring();
+startMonitoring().catch(async (error) => {
+    console.error('Fatal error in startMonitoring:', error);
+    await cleanup();
+});
