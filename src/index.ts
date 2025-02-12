@@ -32,10 +32,9 @@ async function startMonitoring() {
         const encryption = new EncryptionService(config.encryption);
         const dbService = new DatabaseService(dbManager, encryption);
         
-        const playerTracker = new ConsolePlayerTracker(dbService);
+        const playerTracker = new ConsolePlayerTracker(dbService, config);  // Updated to pass config
         const scraper = new GamePanelScraper(true, dbService);
 
-        // Register cleanup handlers
         process.on('SIGINT', cleanup);
         process.on('SIGTERM', cleanup);
         process.on('uncaughtException', async (error) => {
@@ -74,7 +73,6 @@ async function startMonitoring() {
                 await new Promise(resolve => setTimeout(resolve, config.refreshInterval));
             } catch (error) {
                 console.error('An error occurred during monitoring:', error);
-                // Add short delay before retry to avoid rapid connection attempts
                 await new Promise(resolve => setTimeout(resolve, 5000));
             }
         }

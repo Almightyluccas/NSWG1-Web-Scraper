@@ -2,13 +2,19 @@ import { PlayerTracker } from '../types';
 import { DatabaseService } from './Database/DatabaseService';
 import { RaidSchedule } from './RaidSchedule';
 import { TimeService } from './TimeService';
+import { Config } from '../config/config';
+import axios from 'axios';
 
 export class ConsolePlayerTracker implements PlayerTracker {
     private activeSessions = new Map<string, number>();
     private raidSessions = new Map<string, number>();
     private processedSessions = new Set<string>();
+    private lastServerStatus: string | null = null;
 
-    constructor(private dbService: DatabaseService) {
+    constructor(
+        private dbService: DatabaseService,
+        private config: Config
+    ) {
         this.setupMidnightReset();
     }
 
@@ -20,6 +26,35 @@ export class ConsolePlayerTracker implements PlayerTracker {
             this.reset();
             this.setupMidnightReset();
         }, timeUntilMidnight);
+    }
+
+    private async updateServerStatus(players: string[]): Promise<void> {
+        const currentStatus = JSON.stringify({ players, count: players.length });
+        if (this.lastServerStatus === currentStatus) {
+            return; 
+        }
+
+        try {
+            const response = await axios.post(this.config.api.serverStatusApiUrl, {
+                channelId: this.config.api.serverStatusChannelId,
+                playerCount: players.length,
+                players: players
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': this.config.api.apiKey
+                }
+            });
+
+            if (response.status !== 200) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+
+            this.lastServerStatus = currentStatus;
+            console.log('Server status updated successfully');
+        } catch (error) {
+            console.error('Failed to update server status:', error);
+        }
     }
 
     private async updateRaidActivity(player: string, now: Date): Promise<void> {
@@ -38,7 +73,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
             player,
             minutes: raidMinutes,
             raid_type: raidType,
-            status: raidMinutes > 15 ? 'PRESENT' : 'ABSENT'  // Changed to log any attendance
+            status: raidMinutes > 15 ? 'PRESENT' : 'ABSENT'  
         });
     }
 
@@ -71,6 +106,8 @@ export class ConsolePlayerTracker implements PlayerTracker {
         const currentPlayers = new Set(players);
         const isRaidTime = RaidSchedule.isRaidTime(now);
         const raidType = RaidSchedule.getRaidType(now);
+
+        await this.updateServerStatus(players);
 
         if (isRaidTime && raidType) {
             console.log('\n========================================');

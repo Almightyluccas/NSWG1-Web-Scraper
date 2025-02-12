@@ -14,12 +14,19 @@ export interface EncryptionConfig {
     iv: string;
 }
 
+export interface ApiConfig {
+    apiKey: string;
+    serverStatusApiUrl: string;
+    serverStatusChannelId: string;
+}
+
 export interface Config {
     database: DatabaseConfig;
     encryption: EncryptionConfig;
     refreshInterval: number;
     username: string;
     password: string;
+    api: ApiConfig;
 }
 
 export function loadConfig(): Config {
@@ -37,7 +44,10 @@ export function loadConfig(): Config {
         'ENCRYPTION_KEY',
         'ENCRYPTION_IV',
         'HH_USERNAME',
-        'HH_PASSWORD'
+        'HH_PASSWORD',
+        'API_KEY',
+        'SERVER_STATUS_API_URL',
+        'SERVER_STATUS_DISCORD_CHANNEL'
     ];
 
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -59,6 +69,11 @@ export function loadConfig(): Config {
         },
         refreshInterval: 60000,
         username: process.env.HH_USERNAME!,
-        password: process.env.HH_PASSWORD!
+        password: process.env.HH_PASSWORD!,
+        api: {
+            apiKey: process.env.API_KEY!,
+            serverStatusApiUrl: process.env.SERVER_STATUS_API_URL!,
+            serverStatusChannelId: process.env.SERVER_STATUS_DISCORD_CHANNEL!
+        }
     };
 }
