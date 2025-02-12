@@ -36,8 +36,8 @@ export class ConsolePlayerTracker implements PlayerTracker {
 
         try {
             const response = await axios.post(this.config.api.serverStatusApiUrl, {
-                playerCount: players.length,
-                players: players
+                onlinePlayers: players.length,
+                playerNames: players
             }, {
                 headers: {
                     'Content-Type': 'application/json',
