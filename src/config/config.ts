@@ -17,7 +17,6 @@ export interface EncryptionConfig {
 export interface ApiConfig {
     apiKey: string;
     serverStatusApiUrl: string;
-    serverStatusChannelId: string;
 }
 
 export interface Config {
@@ -47,7 +46,6 @@ export function loadConfig(): Config {
         'HH_PASSWORD',
         'API_KEY',
         'SERVER_STATUS_API_URL',
-        'SERVER_STATUS_DISCORD_CHANNEL'
     ];
 
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -73,7 +71,6 @@ export function loadConfig(): Config {
         api: {
             apiKey: process.env.API_KEY!,
             serverStatusApiUrl: process.env.SERVER_STATUS_API_URL!,
-            serverStatusChannelId: process.env.SERVER_STATUS_DISCORD_CHANNEL!
         }
     };
 }
