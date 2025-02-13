@@ -60,12 +60,15 @@ export class DbConnectionManager {
                 max: 20,
                 idleTimeoutMillis: 30000,
                 connectionTimeoutMillis: 2000,
+                ssl: {
+                    rejectUnauthorized: false
+                }
             });
 
             // Test the connection
             await pool.query('SELECT 1');
             
-            pool.on('error', (err) => {
+            pool.on('error', (err: Error) => {
                 console.error('Unexpected error on idle client', err);
             });
 
