@@ -51,6 +51,16 @@ export class DbConnectionManager {
     private async createConnection(): Promise<Pool> {
         try {
             this.isConnecting = true;
+            console.log('Attempting to create database connection...');
+            
+            console.log('Connection config:', {
+                host: this.config.host,
+                port: this.config.port,
+                database: this.config.database,
+                user: this.config.user,
+                ssl: true
+            });
+            
             const pool = new Pool({
                 host: this.config.host,
                 port: this.config.port,
@@ -65,17 +75,32 @@ export class DbConnectionManager {
                 }
             });
 
-            // Test the connection
-            await pool.query('SELECT 1');
+            console.log('Pool created, testing connection...');
             
             pool.on('error', (err: Error) => {
-                console.error('Unexpected error on idle client', err);
+                console.error('Pool error:', err.message);
+                console.error('Error stack:', err.stack);
             });
 
+            pool.on('connect', () => {
+                console.log('New client connected to database');
+            });
+
+            // Test the connection
+            const testResult = await pool.query('SELECT 1');
+            console.log('Connection test result:', testResult.rows[0]);
+            
             this.connectionRetries = 0;
             this.lastUsedTime = Date.now();
             return pool;
         } catch (error: any) {
+            console.error('Connection error:', {
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                detail: error.detail
+            });
+            
             this.connectionRetries++;
             if (this.connectionRetries < this.MAX_RETRIES) {
                 console.log(`Retrying connection (attempt ${this.connectionRetries}/${this.MAX_RETRIES})...`);
