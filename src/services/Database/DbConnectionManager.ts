@@ -1,13 +1,13 @@
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
 import { DatabaseConfig } from '../../config/config';
 
 export class DbConnectionManager {
     private static instance: DbConnectionManager;
-    private connection: mysql.Connection | null = null;
+    private pool: Pool | null = null;
     private isConnecting: boolean = false;
     private connectionRetries: number = 0;
     private readonly MAX_RETRIES = 5;
-    private readonly IDLE_TIMEOUT_MS = 30000; 
+    private readonly IDLE_TIMEOUT_MS = 30000;
     private lastUsedTime: number = 0;
     private idleCheckInterval: NodeJS.Timeout | null = null;
 
@@ -22,11 +22,11 @@ export class DbConnectionManager {
     }
 
     private async checkIdleConnection() {
-        if (!this.connection) return;
+        if (!this.pool) return;
         
         const idleTime = Date.now() - this.lastUsedTime;
         if (idleTime >= this.IDLE_TIMEOUT_MS) {
-            console.log('Closing idle database connection');
+            console.log('Closing idle database connection pool');
             await this.end();
         }
     }
@@ -48,33 +48,30 @@ export class DbConnectionManager {
         }
     }
 
-    private async createConnection(): Promise<mysql.Connection> {
+    private async createConnection(): Promise<Pool> {
         try {
             this.isConnecting = true;
-            const connection = await mysql.createConnection({
+            const pool = new Pool({
                 host: this.config.host,
                 port: this.config.port,
                 user: this.config.user,
                 password: this.config.password,
-                database: this.config.database
+                database: this.config.database,
+                max: 20,
+                idleTimeoutMillis: 30000,
+                connectionTimeoutMillis: 2000,
             });
 
-            connection.on('error', async (err) => {
-                console.error('Database connection error:', err);
-                if (err.code === 'PROTOCOL_CONNECTION_LOST' || 
-                    err.code === 'ECONNRESET' ||
-                    err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
-                    this.connection = null;
-                    this.connectionRetries = 0;
-                    await this.getConnection();
-                } else {
-                    throw err;
-                }
+            // Test the connection
+            await pool.query('SELECT 1');
+            
+            pool.on('error', (err) => {
+                console.error('Unexpected error on idle client', err);
             });
 
             this.connectionRetries = 0;
             this.lastUsedTime = Date.now();
-            return connection;
+            return pool;
         } catch (error: any) {
             this.connectionRetries++;
             if (this.connectionRetries < this.MAX_RETRIES) {
@@ -89,34 +86,34 @@ export class DbConnectionManager {
     }
 
     private async isConnectionValid(): Promise<boolean> {
-        if (!this.connection) return false;
+        if (!this.pool) return false;
         try {
-            await this.connection.query('SELECT 1');
+            await this.pool.query('SELECT 1');
             this.lastUsedTime = Date.now();
             return true;
         } catch (error) {
             console.log('Connection validation failed, will create new connection');
-            this.connection = null;
+            this.pool = null;
             return false;
         }
     }
 
-    public async getConnection(): Promise<mysql.Connection> {
+    public async getConnection(): Promise<Pool> {
         if (this.isConnecting) {
             await new Promise(resolve => setTimeout(resolve, 100));
             return this.getConnection();
         }
 
-        if (this.connection) {
+        if (this.pool) {
             const isValid = await this.isConnectionValid();
             if (isValid) {
-                this.lastUsedTime = Date.now(); 
-                return this.connection;
+                this.lastUsedTime = Date.now();
+                return this.pool;
             }
         }
 
-        this.connection = await this.createConnection();
-        return this.connection;
+        this.pool = await this.createConnection();
+        return this.pool;
     }
 
     public async end(): Promise<void> {
@@ -125,11 +122,11 @@ export class DbConnectionManager {
                 clearInterval(this.idleCheckInterval);
                 this.idleCheckInterval = null;
             }
-            if (this.connection) {
-                console.log('Closing database connection...');
-                await this.connection.end();
-                this.connection = null;
-                console.log('Database connection closed successfully');
+            if (this.pool) {
+                console.log('Closing database connection pool...');
+                await this.pool.end();
+                this.pool = null;
+                console.log('Database connection pool closed successfully');
             }
         } catch (error: any) {
             console.error('Error closing database connection:', error);

@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
 import { DatabaseConfig } from '../../config/config';
 import { DbConnectionManager } from './DbConnectionManager';
 
@@ -11,75 +11,83 @@ export class DatabaseInitializer {
         this.dbManager = DbConnectionManager.getInstance(dbConfig);
     }
 
-    private async tableExists(conn: mysql.Connection, tableName: string): Promise<boolean> {
-        const [rows] = await conn.query(
-            'SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = ? AND table_name = ?',
-            [this.dbConfig.database, tableName]
+    private async tableExists(client: Pool, tableName: string): Promise<boolean> {
+        const result = await client.query(
+            'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2)',
+            ['public', tableName]
         );
-        return (rows as any)[0].count > 0;
+        return result.rows[0].exists;
     }
 
     public async initialize(): Promise<void> {
         try {
-            const conn = await this.dbManager.getConnection();
+            const client = await this.dbManager.getConnection();
 
             const tables = ['Players', 'Sessions', 'DailyActivity', 'RaidActivity'];
             for (const table of tables) {
-                const exists = await this.tableExists(conn, table);
+                const exists = await this.tableExists(client, table);
                 console.log(`Table ${table}: ${exists ? 'Already exists' : 'Will be created'}`);
             }
 
-            await conn.query('SET FOREIGN_KEY_CHECKS = 1');
-            await conn.query('SET time_zone = "America/New_York"'); 
+            await client.query("SET TIME ZONE 'America/New_York'");
 
-            await conn.query(`
+            await client.query(`
                 CREATE TABLE IF NOT EXISTS Players (
                     name VARCHAR(255) PRIMARY KEY,
                     is_active_raider BOOLEAN DEFAULT FALSE
                 )
             `);
 
-            await conn.query(`
+            await client.query(`
                 CREATE TABLE IF NOT EXISTS Sessions (
-                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    id BIGSERIAL PRIMARY KEY,
                     cookies TEXT NOT NULL,
-                    created_at BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Timestamp in milliseconds',
-                    INDEX created_at_idx (created_at)
+                    created_at BIGINT NOT NULL
                 )
             `);
 
-            await conn.query(`
+            await client.query('CREATE INDEX IF NOT EXISTS sessions_created_at_idx ON Sessions(created_at)');
+
+            await client.query(`
                 CREATE TABLE IF NOT EXISTS DailyActivity (
-                    date BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Date at midnight in milliseconds',
-                    player VARCHAR(255) NOT NULL,
-                    session_start BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Session start timestamp in milliseconds',
-                    session_end BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Session end timestamp in milliseconds',
-                    minutes INT NOT NULL COMMENT 'Duration in minutes',
-                    PRIMARY KEY (date, player, session_start),
-                    FOREIGN KEY (player) REFERENCES Players(name) ON DELETE CASCADE,
-                    INDEX player_idx (player),
-                    INDEX date_idx (date) COMMENT 'For date range queries'
+                    date BIGINT NOT NULL,
+                    player VARCHAR(255) NOT NULL REFERENCES Players(name) ON DELETE CASCADE,
+                    session_start BIGINT NOT NULL,
+                    session_end BIGINT NOT NULL,
+                    minutes INTEGER NOT NULL,
+                    PRIMARY KEY (date, player, session_start)
                 )
             `);
 
-            await conn.query(`
+            await client.query('CREATE INDEX IF NOT EXISTS daily_activity_player_idx ON DailyActivity(player)');
+            await client.query('CREATE INDEX IF NOT EXISTS daily_activity_date_idx ON DailyActivity(date)');
+
+            await client.query(`
+                DO $$ BEGIN
+                    CREATE TYPE raid_type AS ENUM ('WED', 'SAT');
+                    CREATE TYPE attendance_status AS ENUM ('PRESENT', 'ABSENT', 'EXCUSED');
+                EXCEPTION
+                    WHEN duplicate_object THEN null;
+                END $$;
+            `);
+
+            await client.query(`
                 CREATE TABLE IF NOT EXISTS RaidActivity (
-                    date BIGINT NOT NULL COMMENT 'Eastern Time (EST/EDT) Date at midnight in milliseconds',
-                    player VARCHAR(255) NOT NULL,
-                    minutes INT NOT NULL COMMENT 'Duration in minutes',
-                    raid_type ENUM('WED', 'SAT') NOT NULL COMMENT 'Raid day in Eastern Time',
-                    status ENUM('PRESENT', 'ABSENT', 'EXCUSED') NOT NULL,
-                    PRIMARY KEY (date, player),
-                    FOREIGN KEY (player) REFERENCES Players(name) ON DELETE CASCADE,
-                    INDEX player_idx (player),
-                    INDEX date_idx (date) COMMENT 'For date range queries'
+                    date BIGINT NOT NULL,
+                    player VARCHAR(255) NOT NULL REFERENCES Players(name) ON DELETE CASCADE,
+                    minutes INTEGER NOT NULL,
+                    raid_type raid_type NOT NULL,
+                    status attendance_status NOT NULL,
+                    PRIMARY KEY (date, player)
                 )
             `);
 
-            const [timeZoneResult] = await conn.query('SELECT @@session.time_zone, @@system_time_zone');
+            await client.query('CREATE INDEX IF NOT EXISTS raid_activity_player_idx ON RaidActivity(player)');
+            await client.query('CREATE INDEX IF NOT EXISTS raid_activity_date_idx ON RaidActivity(date)');
+
+            const timeZoneResult = await client.query('SHOW timezone');
             console.log('Database timezone configuration:', {
-                session: (timeZoneResult as any)[0]['@@session.time_zone'],
-                system: (timeZoneResult as any)[0]['@@system_time_zone']
+                timezone: timeZoneResult.rows[0].TimeZone
             });
 
             console.log('Database initialization completed with Eastern Time zone configuration');
