@@ -19,8 +19,8 @@ export class ConsolePlayerTracker implements PlayerTracker {
     }
 
     private setupMidnightReset() {
-        const nextMidnight = TimeService.getMidnightNextDayEST();
-        const timeUntilMidnight = nextMidnight.getTime() - TimeService.getCurrentESTTime().getTime();
+        const nextMidnight = TimeService.getMidnightNextDayGMT();
+        const timeUntilMidnight = nextMidnight.getTime() - TimeService.getCurrentGMTTime().getTime();
 
         setTimeout(() => {
             this.reset();
@@ -60,19 +60,21 @@ export class ConsolePlayerTracker implements PlayerTracker {
         const raidType = RaidSchedule.getRaidType(now);
         if (!raidType) return;
 
-        const dayStart = TimeService.getDayStartEST();
+        const dayStart = TimeService.getDayStartGMT();
         let raidMinutes = this.raidSessions.get(player) || 0;
         const sessionLength = Math.floor((now.getTime() - (this.activeSessions.get(player) || now.getTime())) / 60000);
         raidMinutes += sessionLength;
 
         this.raidSessions.set(player, raidMinutes);
 
+        console.log(`🏆 RAID TRACKING: ${player} is present for ${raidType} raid with ${raidMinutes} total minutes`);
+
         await this.dbService.putRaidActivity({
             date: dayStart,
             player,
             minutes: raidMinutes,
             raid_type: raidType,
-            status: raidMinutes > 15 ? 'PRESENT' : 'ABSENT'  
+            status: 'PRESENT'  // Any player in the raid is counted as present, regardless of duration
         });
     }
 
@@ -82,7 +84,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
             return;
         }
 
-        const dayStart = TimeService.getDayStartEST();
+        const dayStart = TimeService.getDayStartGMT();
         const minutes = Math.floor((now.getTime() - sessionStart) / 60000);
         
         await this.dbService.putDailyActivity({
@@ -101,7 +103,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
     }
 
     async processNewPlayers(players: string[]): Promise<void> {
-        const now = TimeService.getCurrentESTTime();
+        const now = TimeService.getCurrentGMTTime();
         const currentPlayers = new Set(players);
         const isRaidTime = RaidSchedule.isRaidTime(now);
         const raidType = RaidSchedule.getRaidType(now);
@@ -111,7 +113,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
         if (isRaidTime && raidType) {
             console.log('\n========================================');
             console.log(`🎮 RAID TIME: ${raidType} RAID IN PROGRESS 🎮`);
-            console.log(`Time: ${TimeService.formatESTTime(now)}`);
+            console.log(`Time: ${TimeService.formatGMTTime(now)}`);
             console.log('========================================\n');
         }
 
@@ -135,14 +137,14 @@ export class ConsolePlayerTracker implements PlayerTracker {
                 });
                 
                 this.activeSessions.set(player, now.getTime());
-                console.log(`New session started for ${player} at ${TimeService.formatESTTime(now)}`);
+                console.log(`New session started for ${player} at ${TimeService.formatGMTTime(now)}`);
                 if (isRaidTime) {
                     console.log(`📝 Starting raid attendance tracking for ${player}`);
                 }
             }
         }
 
-        console.log(`\nStatus check at ${TimeService.formatESTTime(now)}`);
+        console.log(`\nStatus check at ${TimeService.formatGMTTime(now)}`);
         if (players.length === 0) {
             console.log('Server is empty');
         } else {
@@ -155,7 +157,7 @@ export class ConsolePlayerTracker implements PlayerTracker {
     }
 
     async reset(): Promise<void> {
-        const now = TimeService.getCurrentESTTime();
+        const now = TimeService.getCurrentGMTTime();
 
         const promises = Array.from(this.activeSessions.entries()).map(async ([player, sessionStart]) => {
             await this.recordPlayerActivity(player, sessionStart, now);

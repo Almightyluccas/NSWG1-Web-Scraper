@@ -1,29 +1,29 @@
 import { DateTime } from 'luxon';
 
 export class TimeService {
-    private static readonly TIMEZONE = 'America/New_York';
+    private static readonly TIMEZONE = 'UTC';
 
-    static getCurrentESTTime(): Date {
+    static getCurrentGMTTime(): Date {
         return DateTime.now().setZone(this.TIMEZONE).toJSDate();
     }
 
-    static toESTTime(date: Date | number): Date {
+    static toGMTTime(date: Date | number): Date {
         const inputDate = typeof date === 'number' ? DateTime.fromMillis(date) : DateTime.fromJSDate(date);
         return inputDate.setZone(this.TIMEZONE).toJSDate();
     }
 
-    static getESTTimestamp(): number {
+    static getGMTTimestamp(): number {
         return DateTime.now().setZone(this.TIMEZONE).toMillis();
     }
 
-    static getDayStartEST(): number {
+    static getDayStartGMT(): number {
         return DateTime.now()
             .setZone(this.TIMEZONE)
             .startOf('day')
             .toMillis();
     }
 
-    static getMidnightNextDayEST(): Date {
+    static getMidnightNextDayGMT(): Date {
         return DateTime.now()
             .setZone(this.TIMEZONE)
             .plus({ days: 1 })
@@ -31,10 +31,18 @@ export class TimeService {
             .toJSDate();
     }
 
-    static formatESTTime(date: Date | number): string {
+    static formatGMTTime(date: Date | number): string {
         const inputDate = typeof date === 'number' ? DateTime.fromMillis(date) : DateTime.fromJSDate(date);
         return inputDate
             .setZone(this.TIMEZONE)
             .toFormat('MM/dd/yyyy, hh:mm:ss a ZZZZ');
     }
+
+    // Keeping these methods for backward compatibility, but they now use GMT
+    static getCurrentESTTime = TimeService.getCurrentGMTTime;
+    static toESTTime = TimeService.toGMTTime;
+    static getESTTimestamp = TimeService.getGMTTimestamp;
+    static getDayStartEST = TimeService.getDayStartGMT;
+    static getMidnightNextDayEST = TimeService.getMidnightNextDayGMT;
+    static formatESTTime = TimeService.formatGMTTime;
 }

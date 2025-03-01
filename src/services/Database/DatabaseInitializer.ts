@@ -29,7 +29,7 @@ export class DatabaseInitializer {
                 console.log(`Table ${table}: ${exists ? 'Already exists' : 'Will be created'}`);
             }
 
-            await client.query("SET TIME ZONE 'America/New_York'");
+            await client.query("SET TIME ZONE 'UTC'");
 
             await client.query(`
                 CREATE TABLE IF NOT EXISTS Players (
@@ -62,10 +62,15 @@ export class DatabaseInitializer {
             await client.query('CREATE INDEX IF NOT EXISTS daily_activity_player_idx ON DailyActivity(player)');
             await client.query('CREATE INDEX IF NOT EXISTS daily_activity_date_idx ON DailyActivity(date)');
 
+            // Update the raid_type enum to use THU and SUN
             await client.query(`
                 DO $$ BEGIN
-                    CREATE TYPE raid_type AS ENUM ('WED', 'SAT');
-                    CREATE TYPE attendance_status AS ENUM ('PRESENT', 'ABSENT', 'EXCUSED');
+                    DROP TYPE IF EXISTS raid_type CASCADE;
+                    CREATE TYPE raid_type AS ENUM ('THU', 'SUN');
+                    
+                    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attendance_status') THEN
+                        CREATE TYPE attendance_status AS ENUM ('PRESENT', 'ABSENT', 'EXCUSED');
+                    END IF;
                 EXCEPTION
                     WHEN duplicate_object THEN null;
                 END $$;
@@ -90,7 +95,7 @@ export class DatabaseInitializer {
                 timezone: timeZoneResult.rows[0].TimeZone
             });
 
-            console.log('Database initialization completed with Eastern Time zone configuration');
+            console.log('Database initialization completed with GMT time zone configuration');
         } catch (error) {
             console.error('Error initializing database:', error);
             throw error;
