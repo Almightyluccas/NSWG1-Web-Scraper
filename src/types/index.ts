@@ -49,4 +49,4 @@ export interface RaidActivity {
     status: 'PRESENT' | 'ABSENT' | 'EXCUSED';
 }
 
-export type RaidType = 'THU' | 'SUN';
+export type RaidType = 'WED' | 'SAT';

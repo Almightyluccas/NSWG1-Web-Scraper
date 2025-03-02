@@ -44,9 +44,11 @@ export class RaidSchedule {
         return isRaid;
     }
 
-    static getRaidType(date: Date = TimeService.getCurrentGMTTime()): 'THU' | 'SUN' | null {
+    static getRaidType(date: Date = TimeService.getCurrentGMTTime()): 'WED' | 'SAT' | null {
         const gmtDate = TimeService.toGMTTime(date);
         const day = gmtDate.getDay();
-        return day === 4 ? 'THU' : day === 0 ? 'SUN' : null;
+        // Map Thursday (4) GMT raids to Wednesday (WED) and Sunday (0) GMT raids to Saturday (SAT)
+        // This keeps the EST day labels while the actual time calculations use GMT
+        return day === 4 ? 'WED' : day === 0 ? 'SAT' : null;
     }
 }

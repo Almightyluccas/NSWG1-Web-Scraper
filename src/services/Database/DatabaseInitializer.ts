@@ -66,7 +66,7 @@ export class DatabaseInitializer {
             await client.query(`
                 DO $$ BEGIN
                     DROP TYPE IF EXISTS raid_type CASCADE;
-                    CREATE TYPE raid_type AS ENUM ('THU', 'SUN');
+                    CREATE TYPE raid_type AS ENUM ('WED', 'SAT');
                     
                     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attendance_status') THEN
                         CREATE TYPE attendance_status AS ENUM ('PRESENT', 'ABSENT', 'EXCUSED');
